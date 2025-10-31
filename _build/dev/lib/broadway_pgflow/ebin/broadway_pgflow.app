@@ -1,0 +1,10 @@
+{application,broadway_pgflow,
+             [{modules,['Elixir.Broadway.Pgflow',
+                        'Elixir.Broadway.PgflowProducer',
+                        'Elixir.Broadway.PgflowProducer.Workflow']},
+              {optional_applications,[]},
+              {applications,[kernel,stdlib,elixir,logger,broadway,ex_pgflow,
+                             ecto_sql]},
+              {description,"Broadway-compatible producer backed by PGFlow workflows for durability and orchestration."},
+              {registered,[]},
+              {vsn,"0.1.0"}]}.
