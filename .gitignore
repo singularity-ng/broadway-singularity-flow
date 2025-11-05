@@ -1,0 +1,20 @@
+# Build artifacts
+_build/
+
+deps/
+
+# Erlang/Elixir
+*.beam
+*.ez
+
+# Environment
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+ds_store
+Thumbs.db
