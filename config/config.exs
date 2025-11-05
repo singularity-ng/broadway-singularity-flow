@@ -1,6 +1,6 @@
 import Config
 
-# Default QuantumFlow configuration for Broadway.QuantumFlowProducer
-config :quantum_flow,
+# Default SingularityWorkflow configuration for Broadway.SingularityWorkflowsProducer
+config :singularity_workflows,
   timeout_ms: 300_000,
   retries: 3

@@ -4,9 +4,9 @@ Status: NOT RUN — runtime tools (Elixir/mix) not available in the current exec
 See "How to run" below to produce real results in your dev/staging environment or CI (Nix recommended).
 
 ## Summary / Intent
-The included benchmark script `packages/broadway_quantum_flow/bench/bench.exs` uses Benchee to run short microbenchmarks comparing the in-memory push/iteration paths that mimic:
+The included benchmark script `packages/broadway_singularity_flow/bench/bench.exs` uses Benchee to run short microbenchmarks comparing the in-memory push/iteration paths that mimic:
 
-- Broadway.QuantumFlowProducer-like path (simulate_quantum_flow)  
+- Broadway.SingularityWorkflowsProducer-like path (simulate_singularity_workflows)  
 - DummyProducer-like path (simulate_dummy)
 
 It runs for inputs:
@@ -24,7 +24,7 @@ The script writes a summary to this file when executed.
 
 ## Current placeholder results
 No numeric results available because the script has not been executed here. The repository contains:
-- packages/broadway_quantum_flow/bench/bench.exs (Benchee script)
+- packages/broadway_singularity_flow/bench/bench.exs (Benchee script)
 
 ## How to run (recommended — use Nix for reproducible environment)
 1. Enter project Nix dev shell (recommended):
@@ -35,11 +35,11 @@ No numeric results available because the script has not been executed here. The 
    - If in a shell with Elixir available:
      - From repo root:
        - mix deps.get
-       - mix run ./packages/broadway_quantum_flow/bench/bench.exs
+       - mix run ./packages/broadway_singularity_flow/bench/bench.exs
      - Or directly:
-       - elixir ./packages/broadway_quantum_flow/bench/bench.exs
+       - elixir ./packages/broadway_singularity_flow/bench/bench.exs
 
-3. After successful run, `packages/broadway_quantum_flow/bench/results.md` will be overwritten with a timestamped summary.
+3. After successful run, `packages/broadway_singularity_flow/bench/results.md` will be overwritten with a timestamped summary.
 
 Example commands (adjust to your Nix flow):
 ```bash
@@ -48,7 +48,7 @@ nix develop
 
 # from repo root
 mix deps.get
-mix run ./packages/broadway_quantum_flow/bench/bench.exs
+mix run ./packages/broadway_singularity_flow/bench/bench.exs
 ```
 
 ## Notes & guidance for end-to-end benchmarking
@@ -57,7 +57,7 @@ mix run ./packages/broadway_quantum_flow/bench/bench.exs
   - QuantumFlow workflows enabled and using the same workflow config as production
   - Representative worker workloads (CPU/GPU) to measure realistic latency and resource contention
   - System-level monitoring (Prometheus, node_exporter, nvidia-smi telemetry) to capture CPU, memory, and GPU utilization
-- Capture results into CI artifacts and into `packages/broadway_quantum_flow/bench/results.md` (the bench script already writes a markdown summary).
+- Capture results into CI artifacts and into `packages/broadway_singularity_flow/bench/results.md` (the bench script already writes a markdown summary).
 
 ## Diagnostic note (why results are missing here)
 Attempts to run `mix test` and to execute the bench script in this environment failed due to the absence of `mix` / `elixir` (Exit code 127). Run the commands above inside your Nix dev/CI environment where Elixir is available.

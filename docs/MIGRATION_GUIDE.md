@@ -1,6 +1,6 @@
 # Broadway.QuantumFlow Migration Guide
 
-This guide provides a comprehensive, step-by-step process for migrating existing Broadway pipelines from producers like `Broadway.DummyProducer`, `Broadway.Kafka.Producer`, or others to `Broadway.QuantumFlowProducer`. The migration focuses on durability, orchestration, and resource management using QuantumFlow workflows backed by PostgreSQL.
+This guide provides a comprehensive, step-by-step process for migrating existing Broadway pipelines from producers like `Broadway.DummyProducer`, `Broadway.Kafka.Producer`, or others to `Broadway.SingularityWorkflowsProducer`. The migration focuses on durability, orchestration, and resource management using QuantumFlow workflows backed by PostgreSQL.
 
 ## Prerequisites
 
@@ -14,7 +14,7 @@ Before starting the migration:
          {:broadway, "~> 1.0"},
          {:QuantumFlow, "~> 0.1"},
          {:ecto_sql, "~> 3.10"},
-         {:broadway_quantum_flow, "~> 0.1.0"}
+         {:broadway_singularity_flow, "~> 0.1.0"}
        ]
      end
      ```
@@ -47,7 +47,7 @@ Before starting the migration:
    - Replace `your_pipeline_jobs` with your queue name (e.g., `embedding_jobs`).
 
 4. **Resource Hints (Optional)**:
-   - If using GPU or other resources, implement `Broadway.QuantumFlowProducer.Workflow.acquire_gpu_lock/1` or similar.
+   - If using GPU or other resources, implement `Broadway.SingularityWorkflowsProducer.Workflow.acquire_gpu_lock/1` or similar.
    - Example using PG advisory locks:
      ```elixir
      defp acquire_gpu_lock(queue_name) do
@@ -88,7 +88,7 @@ end
 
 ### Step 2: Update Producer Configuration
 
-Replace the producer module with `Broadway.QuantumFlowProducer` and add required options.
+Replace the producer module with `Broadway.SingularityWorkflowsProducer` and add required options.
 
 Updated config:
 ```elixir
@@ -96,12 +96,12 @@ def start_link(opts) do
   Broadway.start_link(__MODULE__,
     name: __MODULE__,
     producer: [
-      module: {Broadway.QuantumFlowProducer, [
+      module: {Broadway.SingularityWorkflowsProducer, [
         workflow_name: "your_pipeline_producer",  # Unique name
         queue_name: "your_pipeline_jobs",         # Your queue table
         concurrency: 10,                          # Match or adjust from current
         batch_size: 16,                           # Optimal for your workload
-        quantum_flow_config: [                          # QuantumFlow settings
+        singularity_workflows_config: [                          # QuantumFlow settings
           timeout_ms: 300_000,                    # 5 min timeout
           retries: 3                              # Max retries
         ],
@@ -125,12 +125,12 @@ end
 
 Ensure your `handle_message/3` function works with the new message format.
 
-QuantumFlowProducer yields:
+SingularityWorkflowsProducer yields:
 ```elixir
 %Broadway.Message{
   data: {job_id, job_data},  # Tuple: id from DB, your original data
   metadata: job_metadata,    # From DB metadata field
-  acknowledger: {Broadway.QuantumFlowProducer.Workflow, job_id}
+  acknowledger: {Broadway.SingularityWorkflowsProducer.Workflow, job_id}
 }
 ```
 
@@ -186,7 +186,7 @@ If migrating from another queue system:
 
 ### Step 5: Implement Custom Workflow Logic (If Needed)
 
-For advanced use cases, extend `Broadway.QuantumFlowProducer.Workflow`:
+For advanced use cases, extend `Broadway.SingularityWorkflowsProducer.Workflow`:
 
 ```elixir
 defmodule CustomWorkflow do
@@ -255,7 +255,7 @@ Supervisor.start_link(children, strategy: :one_for_one)
 
 1. **Unit Tests**:
    ```bash
-   cd packages/broadway_quantum_flow
+   cd packages/broadway_singularity_flow
    mix test test/broadway/quantum_flow_producer_test.exs
    ```
 

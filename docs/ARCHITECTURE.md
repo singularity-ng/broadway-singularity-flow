@@ -5,7 +5,7 @@
 The Broadway.QuantumFlow adapter integrates Broadway's message processing pipeline with QuantumFlow's workflow orchestration, using PostgreSQL as the durable backing store. This architecture provides fault-tolerant, distributed message production with built-in state management, retries, and resource coordination.
 
 Key components:
-- **Broadway.QuantumFlowProducer**: GenServer-based producer that handles demand and yields messages.
+- **Broadway.SingularityWorkflowsProducer**: GenServer-based producer that handles demand and yields messages.
 - **QuantumFlow Workflow**: Orchestrates the fetch-batch-yield cycle with durable state in PostgreSQL.
 - **Queue Table**: PostgreSQL table storing job state (pending, in_progress, completed, failed).
 - **Resource Manager**: Optional integration for acquiring resources like GPUs during fetch.
@@ -14,7 +14,7 @@ Key components:
 
 ```mermaid
 graph TD
-    A[Broadway Pipeline] --> B[Broadway.QuantumFlowProducer]
+    A[Broadway Pipeline] --> B[Broadway.SingularityWorkflowsProducer]
     B --> C[handle_demand]
     C --> D[QuantumFlow Workflow Enqueue: fetch]
     D --> E[PostgreSQL Queue Query<br/>LIMIT demand, status='pending']
@@ -49,7 +49,7 @@ graph TD
 
 ## Workflow Mapping
 
-### Core Workflow Steps (Broadway.QuantumFlowProducer.Workflow)
+### Core Workflow Steps (Broadway.SingularityWorkflowsProducer.Workflow)
 
 - **fetch(state)**: 
   - Input: `%{demand: n, batch_size: m, queue_name: table, resource_hints: hints}`

@@ -1,15 +1,15 @@
 # Deployment Guide
 
-This document contains practical production deployment guidance for the `Broadway.QuantumFlowProducer` package. It covers required environment configuration, database and queue setup, monitoring, scaling guidance, troubleshooting steps, and rollback procedures.
+This document contains practical production deployment guidance for the `Broadway.SingularityWorkflowsProducer` package. It covers required environment configuration, database and queue setup, monitoring, scaling guidance, troubleshooting steps, and rollback procedures.
 
 ## Overview
 
-The producer integrates Broadway with QuantumFlow-backed workflows using PostgreSQL as the durable queue. Production deployments must ensure durable storage, correct QuantumFlow configuration, resource lock handling (e.g., GPUs), monitoring, and an operational rollout/rollback plan.
+The producer integrates Broadway with workflow-backed workflows using PostgreSQL as the durable queue. Production deployments must ensure durable storage, correct workflow configuration, resource lock handling (e.g., GPUs), monitoring, and an operational rollout/rollback plan.
 
 ## Prerequisites
 
-- PostgreSQL (primary) reachable by the app and QuantumFlow.
-- QuantumFlow library installed and available to your runtime.
+- PostgreSQL (primary) reachable by the app and workflow.
+- Workflow library installed and available to your runtime.
 - Ecto repo configured and connection pool sized appropriately.
 - Nix-based reproducible build/dev shells are recommended to match CI and production runtimes.
 - Operational access to resource lock mechanism (DB advisory locks or dedicated locks table) if using resource_hints (GPU).
@@ -20,8 +20,8 @@ Recommended variables (do not commit secrets):
 
 - DATABASE_URL or ECTO_REPO-specific DSN (e.g., postgresql://user:pass@host:5432/db)
 - POOL_SIZE (Ecto pool size)
-- PGFLOW_TIMEOUT_MS (default 300000)
-- PGFLOW_RETRIES (default 3)
+- WORKFLOW_TIMEOUT_MS (default 300000)
+- WORKFLOW_RETRIES (default 3)
 - BROADWAY_CONCURRENCY (per-instance concurrency)
 - BROADWAY_BATCH_SIZE (batch size used by producer)
 - GPU_LOCK_TABLE (if using table-based locks)
@@ -50,13 +50,13 @@ CREATE TABLE IF NOT EXISTS embedding_jobs (
 CREATE INDEX idx_embedding_jobs_status_inserted_at ON embedding_jobs (status, inserted_at);
 ```
 
-## QuantumFlow configuration
+## Workflow configuration
 
 - Use distinct workflow_name for each logical producer to avoid collisions.
-- Tune PBflow workflow timeout and retries:
-  - PGFLOW_TIMEOUT_MS: Set to slightly above expected maximum job runtime.
-  - PGFLOW_RETRIES: Number of retries before permanent failure handling.
-- Ensure QuantumFlow has permissions to read/update queue tables and use advisory locks if required.
+- Tune workflow timeout and retries:
+  - WORKFLOW_TIMEOUT_MS: Set to slightly above expected maximum job runtime.
+  - WORKFLOW_RETRIES: Number of retries before permanent failure handling.
+- Ensure workflow has permissions to read/update queue tables and use advisory locks if required.
 
 ## Resource locks (GPUs, exclusive resources)
 
@@ -72,7 +72,7 @@ Instrument and monitor:
 - Processing throughput: completed jobs per minute
 - Error rate: failed jobs / total jobs
 - End-to-end latency: time from inserted_at → completed/failed
-- QuantumFlow workflow health: restarts, failures, running workflows count
+- Workflow workflow health: restarts, failures, running workflows count
 - Resource lock metrics: lock waiters, lock acquisition rate
 
 Recommended tools: Prometheus + Grafana for metrics, alerting for thresholds (queue depth, error rate, workflow crash rate).
@@ -107,13 +107,13 @@ Suggested alerts:
 Common issues and steps:
 
 - Producer fails to start (workflow failed):
-  - Check QuantumFlow and DB connectivity and permissions.
+  - Check workflow and DB connectivity and permissions.
   - Validate workflow_name uniqueness.
   - Inspect app logs for stack traces.
 
 - Messages not yielded:
   - Verify queue schema and pending jobs exist.
-  - Check QuantumFlow workflows are running and not stuck.
+  - Check workflow workflows are running and not stuck.
   - Ensure indexes on status/inserted_at to avoid full table scans.
 
 - High latency / low throughput:
@@ -129,7 +129,7 @@ Operational commands (examples):
 - Check pending job count:
   - psql -c "SELECT status, COUNT(*) FROM embedding_jobs GROUP BY status;"
 - Inspect Broadway producer state (iex):
-  - :sys.get_state(Broadway.QuantumFlowProducer)
+  - :sys.get_state(Broadway.SingularityWorkflowsProducer)
 
 ## Rollback procedures
 
@@ -147,14 +147,14 @@ Operational commands (examples):
   - Ensure Nix environment and release build reproduceable.
 
 - Post-deploy validation:
-  - Validate workflow registration in QuantumFlow.
+  - Validate workflow registration in workflow.
   - Verify queue depth trends and latency.
   - Check for increased error rates.
 
 ## Notes about benchmarking
 
 - The included `bench/bench.exs` performs in-memory microbenchmarks using Benchee to compare push/iteration paths.
-- For end-to-end performance (DB, QuantumFlow, GPU-bound tasks) run integration benchmarks in a staging environment that mirrors production hardware and DB.
+- For end-to-end performance (DB, workflow, GPU-bound tasks) run integration benchmarks in a staging environment that mirrors production hardware and DB.
 
 ## Contact & escalation
 

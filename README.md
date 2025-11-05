@@ -14,7 +14,7 @@ This package provides a reliable producer for Broadway pipelines, using QuantumF
 
 ## Installation
 
-Add `:broadway_quantum_flow` to your list of dependencies in `mix.exs`:
+Add `:broadway_singularity_flow` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
@@ -22,7 +22,7 @@ def deps do
     {:broadway, "~> 1.0"},
     {:QuantumFlow, "~> 0.1"},
     {:ecto_sql, "~> 3.10"},
-    {:broadway_quantum_flow, path: "../packages/broadway_quantum_flow"}  # For local development
+    {:broadway_singularity_flow, path: "../packages/broadway_singularity_flow"}  # For local development
   ]
 end
 ```
@@ -35,7 +35,7 @@ $ mix deps.get
 
 ## API
 
-### Broadway.QuantumFlowProducer.start_link/1
+### Broadway.SingularityWorkflowsProducer.start_link/1
 
 Starts the producer GenServer with an attached QuantumFlow workflow.
 
@@ -49,7 +49,7 @@ Starts the producer GenServer with an attached QuantumFlow workflow.
 
 **Example**:
 ```elixir
-{:ok, _pid} = Broadway.QuantumFlowProducer.start_link([
+{:ok, _pid} = Broadway.SingularityWorkflowsProducer.start_link([
   workflow_name: "embedding_producer",
   queue_name: "embedding_jobs",
   concurrency: 10,
@@ -60,7 +60,7 @@ Starts the producer GenServer with an attached QuantumFlow workflow.
 
 ### Workflow Steps
 
-The integrated workflow (`Broadway.QuantumFlowProducer.Workflow`) handles:
+The integrated workflow (`Broadway.SingularityWorkflowsProducer.Workflow`) handles:
 - `fetch/1`: Queries pending jobs (LIMIT demand), applies resource hints.
 - `batch/1`: Groups jobs into batches ≤ batch_size.
 - `yield/1`: Sends Broadway.Messages asynchronously.
@@ -69,7 +69,7 @@ The integrated workflow (`Broadway.QuantumFlowProducer.Workflow`) handles:
 
 ## Usage Example: Embedding Pipeline Migration
 
-To migrate `Singularity.Embedding.BroadwayEmbeddingPipeline` from `Broadway.DummyProducer` to `Broadway.QuantumFlowProducer`:
+To migrate `Singularity.Embedding.BroadwayEmbeddingPipeline` from `Broadway.DummyProducer` to `Broadway.SingularityWorkflowsProducer`:
 
 1. **Update Broadway Config** (in `start_pipeline/5`):
    ```elixir
@@ -81,12 +81,12 @@ To migrate `Singularity.Embedding.BroadwayEmbeddingPipeline` from `Broadway.Dumm
 
    # With:
    producer: [
-     module: {Broadway.QuantumFlowProducer, [
+     module: {Broadway.SingularityWorkflowsProducer, [
        workflow_name: "embedding_producer",
        queue_name: "embedding_jobs",
        concurrency: 10,
        batch_size: 16,
-       quantum_flow_config: [timeout_ms: 300_000, retries: 3],
+       singularity_workflows_config: [timeout_ms: 300_000, retries: 3],
        resource_hints: [gpu: true]
      ]},
      concurrency: 10
@@ -114,12 +114,12 @@ For migrating `CentralCloud.ComplexityTrainingPipeline`:
 ```elixir
 # In pipeline configuration
 producer: [
-  module: {Broadway.QuantumFlowProducer, [
+  module: {Broadway.SingularityWorkflowsProducer, [
     workflow_name: "complexity_training_producer",
     queue_name: "complexity_training_jobs",
     concurrency: 5,
     batch_size: 8,
-    quantum_flow_config: [timeout_ms: 600_000, retries: 5],
+    singularity_workflows_config: [timeout_ms: 600_000, retries: 5],
     resource_hints: [gpu: true, cpu_cores: 8]
   ]},
   concurrency: 5
@@ -145,12 +145,12 @@ For `Singularity.ArchitectureLearningPipeline`:
 
 ```elixir
 producer: [
-  module: {Broadway.QuantumFlowProducer, [
+  module: {Broadway.SingularityWorkflowsProducer, [
     workflow_name: "architecture_learning_producer",
     queue_name: "architecture_learning_jobs",
     concurrency: 3,
     batch_size: 4,
-    quantum_flow_config: [timeout_ms: 900_000, retries: 3],
+    singularity_workflows_config: [timeout_ms: 900_000, retries: 3],
     resource_hints: [gpu: false, memory_gb: 16]
   ]},
   concurrency: 3
@@ -174,7 +174,7 @@ config :QuantumFlow,
   retries: 5
 ```
 
-For GPU hints, ensure resource acquisition logic in `Broadway.QuantumFlowProducer.Workflow.acquire_gpu_lock/1` is implemented (e.g., PG advisory locks).
+For GPU hints, ensure resource acquisition logic in `Broadway.SingularityWorkflowsProducer.Workflow.acquire_gpu_lock/1` is implemented (e.g., PG advisory locks).
 
 ## Troubleshooting
 
@@ -215,7 +215,7 @@ SELECT status, COUNT(*) FROM embedding_jobs GROUP BY status;
 # (QuantumFlow provides workflow inspection tools)
 
 # Check Broadway producer state
-:sys.get_state(Broadway.QuantumFlowProducer)
+:sys.get_state(Broadway.SingularityWorkflowsProducer)
 ```
 
 ### Performance Tuning
@@ -245,9 +245,9 @@ The following are typical env vars used by this package and the runtime system:
 export DATABASE_URL="ecto://user:pass@host:5432/db"
 export POOL_SIZE=20
 
-# QuantumFlow / workflow tuning
-export PGFLOW_TIMEOUT_MS=300000    # workflow timeout in ms
-export PGFLOW_RETRIES=3            # workflow retry attempts
+# Workflow tuning
+export WORKFLOW_TIMEOUT_MS=300000    # workflow timeout in ms
+export WORKFLOW_RETRIES=3            # workflow retry attempts
 
 # Broadway
 export BROADWAY_CONCURRENCY=10
@@ -319,10 +319,10 @@ Recommended integrations:
 - Ensure lock acquisition has a bounded wait and proper release on failures.
 - Monitor lock contention as part of operational dashboards.
 
-### QuantumFlow-specific recommendations
+### Workflow-specific recommendations
 - Keep workflow_name unique per logical producer to avoid collisions.
-- Tune `PGFLOW_TIMEOUT_MS` and `PGFLOW_RETRIES` for expected job runtimes.
-- Use QuantumFlow workflow inspection tools in staging to validate lifecycle behavior.
+- Tune `WORKFLOW_TIMEOUT_MS` and `WORKFLOW_RETRIES` for expected job runtimes.
+- Use workflow inspection tools in staging to validate lifecycle behavior.
 
 ### Nix and reproducible builds
 This project uses Nix for reproducible development/build environments. Use the project's Nix shells and CI images when running benchmarks or integration tests to match production dependencies.
@@ -333,7 +333,7 @@ For full production configuration, troubleshooting steps and rollback procedures
 Run unit and integration tests:
 
 ```bash
-$ cd packages/broadway_quantum_flow
+$ cd packages/broadway_singularity_flow
 $ mix test
 ```
 

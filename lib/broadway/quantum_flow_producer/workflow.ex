@@ -1,12 +1,12 @@
-defmodule Broadway.QuantumFlowProducer.Workflow do
+defmodule Broadway.SingularityWorkflowsProducer.Workflow do
   @moduledoc """
-  QuantumFlow workflow implementation for Broadway.QuantumFlowProducer.
+  SingularityWorkflow workflow implementation for Broadway.SingularityWorkflowsProducer.
 
   Defines steps for fetching, batching, and yielding messages from a PostgreSQL queue,
   with support for ack/nack updates and stateful resource hint caching (e.g. GPU locks).
   """
 
-  use QuantumFlow.Workflow
+  use Singularity.Workflow.Workflow
 
   alias Broadway.Message
   require Logger
@@ -99,7 +99,7 @@ defmodule Broadway.QuantumFlowProducer.Workflow do
   """
   def yield_and_commit(%{batches: batches, workflow_pid: workflow_pid} = state) do
     state = init_state(state)
-    producer_pid = QuantumFlow.Workflow.get_parent(workflow_pid)
+    producer_pid = Singularity.Workflow.Workflow.get_parent(workflow_pid)
 
     # Flatten messages and attach workflow_pid into metadata
     messages =

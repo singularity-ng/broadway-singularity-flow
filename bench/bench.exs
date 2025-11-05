@@ -1,20 +1,20 @@
 Mix.install([{:benchee, "~> 1.1"}])
 
-# Lightweight bench script comparing a simple QuantumFlow-style push vs Dummy push.
+# Lightweight bench script comparing a simple SingularityWorkflow-style push vs Dummy push.
 # This script runs locally and writes a summary to bench/results.md.
 #
 # Usage:
-#   mix run packages/broadway_quantum_flow/bench/bench.exs
+#   mix run packages/broadway_singularity_flow/bench/bench.exs
 #
 # Notes:
 # - The script uses Mix.install to pull Benchee at runtime.
 # - It simulates message creation and a lightweight "push" loop for both
-#   the QuantumFlow adapter path and a DummyProducer path. This focuses on
-#   measuring throughput/latency of the push logic rather than full DB/QuantumFlow I/O.
+#   the SingularityWorkflow adapter path and a DummyProducer path. This focuses on
+#   measuring throughput/latency of the push logic rather than full DB/SingularityWorkflow I/O.
 # - CPU/GPU measurements are best-effort: it queries os_mon (if available)
 #   and `nvidia-smi` (if present) for GPU utilization.
 
-defmodule QuantumFlowBench do
+defmodule SingularityWorkflowsBench do
   def get_gpu_util do
     case System.cmd("nvidia-smi", ["--query-gpu=utilization.gpu", "--format=csv,noheader,nounits"]) do
       {out, 0} -> String.trim(out)
@@ -43,9 +43,9 @@ defmodule QuantumFlowBench do
     _ -> "n/a"
   end
 
-  # Simulate the QuantumFlow producer path: create messages (maps) and loop through them
+  # Simulate the SingularityWorkflow producer path: create messages (maps) and loop through them
   # doing minimal work to emulate "yielding" and bookkeeping.
-  def simulate_quantum_flow(count) when is_integer(count) and count > 0 do
+  def simulate_singularity_workflows(count) when is_integer(count) and count > 0 do
     msgs = for i <- 1..count, do: %{id: i, payload: "x", metadata: %{}}
 
     # Simulate lightweight per-message processing (no I/O).
@@ -76,8 +76,8 @@ inputs = %{
 # Run the Benchee suite. Short time per input to keep runtime reasonable.
 suite = Benchee.run(
   %{
-    "quantum_flow_sim" => fn count -> QuantumFlowBench.simulate_quantum_flow(count) end,
-    "dummy_sim" => fn count -> QuantumFlowBench.simulate_dummy(count) end
+    "singularity_workflows_sim" => fn count -> SingularityWorkflowsBench.simulate_singularity_workflows(count) end,
+    "dummy_sim" => fn count -> SingularityWorkflowsBench.simulate_dummy(count) end
   },
   inputs: inputs,
   time: 2,
@@ -85,8 +85,8 @@ suite = Benchee.run(
 )
 
 mem = :erlang.memory()
-cpu = QuantumFlowBench.get_cpu_util()
-gpu = QuantumFlowBench.get_gpu_util()
+cpu = SingularityWorkflowsBench.get_cpu_util()
+gpu = SingularityWorkflowsBench.get_gpu_util()
 now = DateTime.utc_now() |> DateTime.to_iso8601()
 
 summary = """
@@ -105,14 +105,14 @@ Run at: #{now}
 ```
 
 ## Notes
-- The benchmark simulates in-memory push loops and does not perform DB or QuantumFlow network I/O.
-- For end-to-end production benchmarking (DB, QuantumFlow workflows, resource locks, GPU-bound work),
-  run a tailored integration benchmark in a staging environment where the DB, QuantumFlow, and GPU hardware
+- The benchmark simulates in-memory push loops and does not perform DB or SingularityWorkflow network I/O.
+- For end-to-end production benchmarking (DB, SingularityWorkflow workflows, resource locks, GPU-bound work),
+  run a tailored integration benchmark in a staging environment where the DB, SingularityWorkflow, and GPU hardware
   are available.
 
 """
 
-result_path = Path.join([File.cwd!(), "packages", "broadway_quantum_flow", "bench", "results.md"])
+result_path = Path.join([File.cwd!(), "packages", "broadway_singularity_flow", "bench", "results.md"])
 File.mkdir_p!(Path.dirname(result_path))
 File.write!(result_path, summary)
 

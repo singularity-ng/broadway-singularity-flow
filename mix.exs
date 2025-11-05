@@ -23,7 +23,7 @@ defmodule BroadwaySingularityFlow.MixProject do
   defp deps do
     [
       {:broadway, "~> 1.0"},
-      {:quantum_flow, path: "../singularity-workflows"},
+      {:singularity_workflow, path: "../singularity-workflows"},
       {:ecto_sql, "~> 3.10"}
     ]
   end
