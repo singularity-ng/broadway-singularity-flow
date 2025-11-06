@@ -1,6 +1,6 @@
-# Broadway.QuantumFlow Migration Guide
+# Broadway.SingularityWorkflowsProducer Migration Guide
 
-This guide provides a comprehensive, step-by-step process for migrating existing Broadway pipelines from producers like `Broadway.DummyProducer`, `Broadway.Kafka.Producer`, or others to `Broadway.SingularityWorkflowsProducer`. The migration focuses on durability, orchestration, and resource management using QuantumFlow workflows backed by PostgreSQL.
+This guide provides a comprehensive, step-by-step process for migrating existing Broadway pipelines from producers like `Broadway.DummyProducer`, `Broadway.Kafka.Producer`, or others to `Broadway.SingularityWorkflowsProducer`. The migration focuses on durability, orchestration, and resource management using Singularity Workflow orchestration backed by PostgreSQL.
 
 ## Prerequisites
 
@@ -12,7 +12,7 @@ Before starting the migration:
      defp deps do
        [
          {:broadway, "~> 1.0"},
-         {:QuantumFlow, "~> 0.1"},
+         {:singularity_workflow, "~> 0.1"},
          {:ecto_sql, "~> 3.10"},
          {:broadway_singularity_flow, "~> 0.1.0"}
        ]
@@ -101,7 +101,7 @@ def start_link(opts) do
         queue_name: "your_pipeline_jobs",         # Your queue table
         concurrency: 10,                          # Match or adjust from current
         batch_size: 16,                           # Optimal for your workload
-        singularity_workflows_config: [                          # QuantumFlow settings
+        singularity_workflows_config: [                          # Singularity Workflow settings
           timeout_ms: 300_000,                    # 5 min timeout
           retries: 3                              # Max retries
         ],
@@ -190,7 +190,7 @@ For advanced use cases, extend `Broadway.SingularityWorkflowsProducer.Workflow`:
 
 ```elixir
 defmodule CustomWorkflow do
-  use QuantumFlow.Workflow
+  use SingularityWorkflow.Workflow
 
   # Override fetch to add custom filtering
   def fetch(state) do
@@ -222,7 +222,7 @@ Old (e.g., DummyProducer - no queue):
 # No explicit enqueue
 ```
 
-New (QuantumFlow):
+New (SingularityWorkflow):
 ```elixir
 def enqueue_job(data, metadata \\ %{}) do
   Repo.insert_all("your_pipeline_jobs", %{
@@ -256,17 +256,17 @@ Supervisor.start_link(children, strategy: :one_for_one)
 1. **Unit Tests**:
    ```bash
    cd packages/broadway_singularity_flow
-   mix test test/broadway/quantum_flow_producer_test.exs
+   mix test test/broadway/workflow_producer_test.exs
    ```
 
 2. **Integration Tests**:
    ```bash
-   mix test test/broadway/quantum_flow_producer_integration_test.exs
+   mix test test/broadway/workflow_producer_integration_test.exs
    ```
 
 3. **Stress Tests** (run in CI or manually):
    ```bash
-   mix test test/broadway/quantum_flow_producer_stress_test.exs
+   mix test test/broadway/workflow_producer_stress_test.exs
    ```
 
 4. **End-to-End Pipeline Test**:

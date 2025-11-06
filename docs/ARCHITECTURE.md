@@ -1,12 +1,12 @@
-# Broadway.QuantumFlow Architecture
+# Broadway.SingularityWorkflowsProducer Architecture
 
 ## Overview
 
-The Broadway.QuantumFlow adapter integrates Broadway's message processing pipeline with QuantumFlow's workflow orchestration, using PostgreSQL as the durable backing store. This architecture provides fault-tolerant, distributed message production with built-in state management, retries, and resource coordination.
+The Broadway.SingularityWorkflowsProducer adapter integrates Broadway's message processing pipeline with Singularity Workflow orchestration, using PostgreSQL as the durable backing store. This architecture provides fault-tolerant, distributed message production with built-in state management, retries, and resource coordination.
 
 Key components:
 - **Broadway.SingularityWorkflowsProducer**: GenServer-based producer that handles demand and yields messages.
-- **QuantumFlow Workflow**: Orchestrates the fetch-batch-yield cycle with durable state in PostgreSQL.
+- **SingularityWorkflow Orchestrator**: Manages the fetch-batch-yield cycle with durable state in PostgreSQL.
 - **Queue Table**: PostgreSQL table storing job state (pending, in_progress, completed, failed).
 - **Resource Manager**: Optional integration for acquiring resources like GPUs during fetch.
 
@@ -16,7 +16,7 @@ Key components:
 graph TD
     A[Broadway Pipeline] --> B[Broadway.SingularityWorkflowsProducer]
     B --> C[handle_demand]
-    C --> D[QuantumFlow Workflow Enqueue: fetch]
+    C --> D[SingularityWorkflow Enqueue: fetch]
     D --> E[PostgreSQL Queue Query<br/>LIMIT demand, status='pending']
     E --> F[Acquire Resource Hints<br/>(e.g., GPU Lock)]
     F --> G[Batch Jobs<br/>chunk_every(batch_size)]
@@ -24,7 +24,7 @@ graph TD
     H --> I[Broadway Processing<br/>(handle_message)]
     I --> J[Ack/Nack<br/>handle_update(:ack/:requeue)]
     J --> K[Update Job Status<br/>completed/failed]
-    K --> L[Workflow State Update<br/>QuantumFlow durable storage]
+    K --> L[Workflow State Update<br/>SingularityWorkflow durable storage]
     L --> M[Retry Logic<br/>if max_retries exceeded]
     
     subgraph "PostgreSQL"
@@ -40,7 +40,7 @@ graph TD
 
 ### Component Interactions
 
-1. **Demand Handling**: Broadway demands messages, triggering QuantumFlow workflow enqueue.
+1. **Demand Handling**: Broadway demands messages, triggering the Singularity Workflow enqueue cycle.
 2. **Fetch Phase**: Query pending jobs, apply resource hints (e.g., advisory locks for GPUs).
 3. **Batching**: Group jobs into configurable batches to optimize processing.
 4. **Yielding**: Asynchronously send Broadway.Messages to the pipeline.
@@ -97,13 +97,13 @@ graph TD
 
 - **Database Dependency**: All operations bottleneck on PostgreSQL; high-load scenarios may require DB optimization (indexes, connection pooling).
 - **Latency Overhead**: Workflow orchestration adds ~10-50ms per batch vs. simple producers like DummyProducer. Suitable for ML workloads, not ultra-low-latency.
-- **Complexity**: More setup than basic producers (schema, migrations, resource impl). Steeper learning curve for QuantumFlow.
+- **Complexity**: More setup than basic producers (schema, migrations, resource impl). Steeper learning curve for Singularity Workflow.
 - **Cost**: PG writes for every ack/nack; monitor IOPS in cloud environments.
 - **Single Point of Failure**: If DB is down, production halts (mitigate with replicas, but reads/writes need primary).
 
 ### When to Use
 
-- **Use Broadway.QuantumFlow** for: Durable ML pipelines, distributed training jobs, resource-constrained environments (GPUs), fault-tolerant systems.
+- **Use Broadway.SingularityWorkflowsProducer** for: Durable ML pipelines, distributed training jobs, resource-constrained environments (GPUs), fault-tolerant systems.
 - **Avoid** for: Simple in-memory processing, high-frequency trading, non-durable prototypes.
 
 ### Performance Considerations
@@ -114,7 +114,7 @@ graph TD
 
 ### Alternatives Comparison
 
-| Feature | Broadway.QuantumFlow | Broadway.Kafka | Broadway.SQS |
+| Feature | Broadway.SingularityWorkflowsProducer | Broadway.Kafka | Broadway.SQS |
 |---------|-----------------|----------------|--------------|
 | Durability | High (PG) | High (distributed) | High (AWS) |
 | Setup Complexity | Medium | High | Low |
@@ -122,7 +122,7 @@ graph TD
 | Cost | DB storage | Kafka cluster | Pay-per-use |
 | Latency | Medium | Low-Medium | Low |
  
-For more details, see [QuantumFlow Documentation](https://hex.pm/packages/QuantumFlow).
+For more details, see the [Singularity Workflow documentation](https://github.com/Singularity-ng/singularity-workflows).
 
 ## Atomic yield and commit
 
@@ -139,4 +139,4 @@ Failure semantics:
 - If sending messages succeeds but the transaction is rolled back later for any reason, the DB will revert; side-effects (sent messages) cannot be undone — the workflow ensures the critical DB update runs prior to sending to minimize this window.
 - All ack/requeue updates are performed by the workflow using transactions so that ack/nack handling is centralized for durability.
 
-This approach keeps all DB updates within the QuantumFlow workflow, simplifying reasoning about durability and reducing duplication of DB logic in the producer.
+This approach keeps all DB updates within the Singularity Workflow orchestrator, simplifying reasoning about durability and reducing duplication of DB logic in the producer.

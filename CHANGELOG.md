@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 ## 0.1.0 - Initial release
 
 - Initial implementation of Broadway.SingularityWorkflowsProducer:
-  - GenServer-based Broadway producer integrating with QuantumFlow workflows.
+  - GenServer-based Broadway producer integrating with Singularity Workflow orchestration.
   - Workflow implementation for fetch, batch, yield, ack, and requeue handling.
   - Resource hints support (GPU acquisition placeholder).
 - Tests:

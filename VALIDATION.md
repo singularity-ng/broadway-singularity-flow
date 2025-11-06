@@ -4,7 +4,7 @@ Repository: [`packages/broadway_singularity_flow`](packages/broadway_singularity
 
 Summary
 - Benchmarks: bench script added at [`bench/bench.exs`](packages/broadway_singularity_flow/bench/bench.exs:1) and results placeholder at [`bench/results.md`](packages/broadway_singularity_flow/bench/results.md:1). Not executed in this environment due to missing Elixir/mix.
-- Error handling tests: added [`test/broadway/quantum_flow_producer_error_test.exs`](packages/broadway_singularity_flow/test/broadway/quantum_flow_producer_error_test.exs:1) covering DB failures, QuantumFlow timeouts, queue exhaustion, resource lock conflicts, and graceful recovery.
+- Error handling tests: added [`test/broadway/workflow_producer_error_test.exs`](packages/broadway_singularity_flow/test/broadway/workflow_producer_error_test.exs:1) covering DB failures, Singularity Workflow timeouts, queue exhaustion, resource lock conflicts, and graceful recovery.
 - README updated with deployment guidance: see [`README.md`](packages/broadway_singularity_flow/README.md:228).
 - Deployment docs: added [`docs/DEPLOYMENT.md`](packages/broadway_singularity_flow/docs/DEPLOYMENT.md:1) with production config, troubleshooting, and rollback procedures.
 - CHANGELOG updated with v0.1.0 deployment notes: [`CHANGELOG.md`](packages/broadway_singularity_flow/CHANGELOG.md:5).
@@ -18,10 +18,10 @@ Benchmarks (what was done)
 - Status: Script present; NOT RUN in this environment. The results file contains instructions and a placeholder.
 
 Error handling validation (what was done)
-- New tests file: [`test/broadway/quantum_flow_producer_error_test.exs`](packages/broadway_singularity_flow/test/broadway/quantum_flow_producer_error_test.exs:1)
+- New tests file: [`test/broadway/workflow_producer_error_test.exs`](packages/broadway_singularity_flow/test/broadway/workflow_producer_error_test.exs:1)
   - Scenarios covered:
     - DB update failures (Workflow.update returns DB error)
-    - QuantumFlow enqueue timeouts/errors
+    - Singularity Workflow enqueue timeouts/errors
     - Empty yields / queue exhaustion
     - Resource lock conflicts (start_link and enqueue errors)
     - Transient error sequences and recovery (tolerates timeouts then succeeds)
@@ -30,7 +30,7 @@ Error handling validation (what was done)
 Deployment notes (what was done)
 - README extended with a Production Deployment section: see [`README.md`](packages/broadway_singularity_flow/README.md:228).
 - New operational guide: [`docs/DEPLOYMENT.md`](packages/broadway_singularity_flow/docs/DEPLOYMENT.md:1)
-  - Contains env var recommendations, queue schema, QuantumFlow tuning, monitoring, scaling guidance, rollout & rollback procedures, Nix recommendation for reproducible builds.
+  - Contains env var recommendations, queue schema, Singularity Workflow tuning, monitoring, scaling guidance, rollout & rollback procedures, Nix recommendation for reproducible builds.
 
 Test & execution attempts
 - Command attempted: `cd packages/broadway_singularity_flow && mix test` — failed: `/bin/sh: mix: command not found` (Exit code 127).
@@ -51,7 +51,7 @@ Shippability verdict (concise)
 - Code, tests, benchmarks, and operational docs are in place for final validation.
 - Blocking items before production release:
   - Run full test suite (`mix test`) in the Nix/Elixir environment and fix any failures.
-  - Execute end-to-end integration benchmarks in a staging environment (real Postgres + QuantumFlow + representative worker load, GPU if applicable) and record results.
+  - Execute end-to-end integration benchmarks in a staging environment (real Postgres + Singularity Workflow + representative worker load, GPU if applicable) and record results.
   - Validate resource lock acquisition/release under contention and monitor lock metrics.
   - Confirm monitoring/alerts and perform a canary rollout validating queue depth, latency, and error rate.
 - Conclusion: Prepared for production candidate testing. NOT fully shippable to production until integration benchmarks and test runs complete in a proper Elixir/Nix environment and observed metrics meet SLOs.

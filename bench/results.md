@@ -54,7 +54,7 @@ mix run ./packages/broadway_singularity_flow/bench/bench.exs
 ## Notes & guidance for end-to-end benchmarking
 - The included script is an in-memory microbenchmark. For production-grade benchmarking you must run an integration benchmark in a staging environment with:
   - A real Postgres instance seeded with 1_000 / 10_000 pending jobs
-  - QuantumFlow workflows enabled and using the same workflow config as production
+  - Singularity Workflow orchestration enabled and using the same workflow config as production
   - Representative worker workloads (CPU/GPU) to measure realistic latency and resource contention
   - System-level monitoring (Prometheus, node_exporter, nvidia-smi telemetry) to capture CPU, memory, and GPU utilization
 - Capture results into CI artifacts and into `packages/broadway_singularity_flow/bench/results.md` (the bench script already writes a markdown summary).
